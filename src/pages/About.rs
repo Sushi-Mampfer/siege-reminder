@@ -35,13 +35,11 @@ pub fn AboutPage() -> impl IntoView {
     });
 
     view! {
-        <div class="p-4 h-screen dark:bg-zinc-800 dark:text-white">
+        <div class="p-4 h-screen dark:bg-red-800 dark:text-white">
             <div class="flex items-center justify-between">
                 <h1 class="text-2xl font-bold mb-4">"About Page"</h1>
-                <A href="/b">
-                    <button class="underline px-4 py-2 rounded-xl">
-                        "Home"
-                    </button>
+                <A href="/">
+                    <button class="underline px-4 py-2 rounded-xl">"Home"</button>
                 </A>
             </div>
             <div>
@@ -51,7 +49,19 @@ pub fn AboutPage() -> impl IntoView {
                 }}
             </div>
 
-            <pre>{move || format!("{:?}", data.get().unwrap_or_else(|| TestResponse { status: "".to_string(), message: "".to_string() } ))}</pre>
+            <pre>
+                {move || {
+                    format!(
+                        "{:?}",
+                        data
+                            .get()
+                            .unwrap_or_else(|| TestResponse {
+                                status: "".to_string(),
+                                message: "".to_string(),
+                            }),
+                    )
+                }}
+            </pre>
         </div>
     }
 }

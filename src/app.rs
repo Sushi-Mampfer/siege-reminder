@@ -12,32 +12,33 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
         <!DOCTYPE html>
         <html lang="en">
             <head>
-                <meta charset="utf-8"/>
-                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <AutoReload options=options.clone() />
-                <HydrationScripts options/>
-                <link rel="stylesheet" id="leptos" href="/pkg/axum-leptos-tailwind-template.css"/>
-                <link rel="shortcut icon" type="image/ico" href="/favicon.ico"/>
-                <MetaTags/>
+                <HydrationScripts options />
+                <link rel="stylesheet" id="leptos" href="/pkg/siege-reminder.css" />
+                <link rel="shortcut icon" type="image/ico" href="/favicon.ico" />
+                <MetaTags />
             </head>
             <body>
-                <App/>
+                <App />
             </body>
         </html>
     }
 }
 
+#[allow(non_snake_case)]
 #[component]
 pub fn App() -> impl IntoView {
     provide_meta_context();
 
     view! {
-        <Title text="Welcome to Leptos"/>
+        <Title text="Welcome to Leptos" />
         <Router>
             <main>
                 <Routes fallback=|| "Page not found.".into_view()>
-                    <Route path=StaticSegment("") view=HomePage/>
-                    <Route path=StaticSegment("about") view=AboutPage/>
+                    <Route path=StaticSegment("") view=HomePage />
+                    <Route path=StaticSegment("about") view=AboutPage />
                 </Routes>
             </main>
         </Router>

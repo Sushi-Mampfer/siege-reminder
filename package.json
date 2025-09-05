@@ -1,11 +1,10 @@
 {
-  "name": "axum-leptos-tailwind-template",
+  "name": "siege-reminder",
   "version": "1.0.0",
   "description": "<picture>     <source srcset=\"https://raw.githubusercontent.com/leptos-rs/leptos/main/docs/logos/Leptos_logo_Solid_White.svg\" media=\"(prefers-color-scheme: dark)\">     <img src=\"https://raw.githubusercontent.com/leptos-rs/leptos/main/docs/logos/Leptos_logo_RGB.svg\" alt=\"Leptos Logo\"> </picture>",
-  "main": "tailwind.config.js",
   "scripts": {
-    "build": "npx tailwindcss -i ./style/input.css -o ./target/site/pkg/axum-leptos-tailwind-template.css",
-    "watch": "npx tailwindcss -i ./style/input.css -o ./target/site/pkg/axum-leptos-tailwind-template.css --watch"
+    "build": "npx tailwindcss -i ./style/input.css -o ./target/site/pkg/siege-reminder.css",
+    "watch": "npx tailwindcss -i ./style/input.css -o ./target/site/pkg/siege-reminder.css --watch"
   },
   "keywords": [],
   "author": "",

@@ -16,5 +16,5 @@ Cargo.lock
 node_modules/
 
 **/output.css
-**/input.css
 .vscode/
+db.sqlite
