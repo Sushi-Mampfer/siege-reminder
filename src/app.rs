@@ -44,7 +44,7 @@ pub fn App() -> impl IntoView {
     provide_meta_context();
 
     view! {
-        <Title text="Welcome to Leptos" />
+        <Title text="Siege reminder" />
         <Router>
             <main class="h-screen w-screen grid grid-cols-3 bg-zinc-800 text-zinc-200">
                 <Routes fallback=|| "Page not found.".into_view()>
