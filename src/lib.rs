@@ -1,6 +1,8 @@
 pub mod app;
-pub mod components;
+pub mod datatypes;
+pub mod db;
 pub mod pages;
+pub mod server;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
@@ -11,5 +13,5 @@ pub fn hydrate() {
 }
 
 pub use app::*;
-pub use components::*;
 pub use pages::*;
+pub use server::*;

@@ -6,7 +6,9 @@ async fn main() {
     use axum::Router;
     use leptos::prelude::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
-    use siege_reminder::app::*;
+    use siege_reminder::{app::*, db::prep_db};
+
+    prep_db().await;
 
     let conf = get_configuration(None).unwrap();
     let leptos_options = conf.leptos_options;
