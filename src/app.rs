@@ -19,6 +19,17 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <link rel="stylesheet" id="leptos" href="/pkg/siege-reminder.css" />
                 <link rel="shortcut icon" type="image/ico" href="/favicon.ico" />
                 <MetaTags />
+                <style>{r#"
+                    input[type=number]::-webkit-inner-spin-button,
+                    input[type=number]::-webkit-outer-spin-button {
+                        -webkit-appearance: none;
+                        margin: 0;
+                    }
+
+                    input[type=number] {
+                        -moz-appearance: textfield;
+                    }
+                "#}</style>
             </head>
             <body>
                 <App />
@@ -35,7 +46,7 @@ pub fn App() -> impl IntoView {
     view! {
         <Title text="Welcome to Leptos" />
         <Router>
-            <main>
+            <main class="h-screen w-screen grid grid-cols-3 bg-zinc-800 text-zinc-200">
                 <Routes fallback=|| "Page not found.".into_view()>
                     <Route path=StaticSegment("") view=HomePage />
                 </Routes>

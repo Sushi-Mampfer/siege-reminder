@@ -25,7 +25,16 @@ pub async fn set_project(username: String, project: String) -> Result<(), Server
 
 #[server]
 pub async fn set_times(username: String, times: Settings) -> Result<(), ServerFnError> {
-    match query("UPDATE users SET monday = ?, tuesday = ?, wednesday = ?, thursday = ?, friday = ?, saturday = ?, sunday = ? WHERE username = ?").bind(times.monday).bind(times.tuesday).bind(times.wednesday).bind(times.thursday).bind(times.friday).bind(times.saturday).bind(times.sunday).bind(username).execute(&*POOL).await {
+    match query("UPDATE users SET monday = ?, tuesday = ?, wednesday = ?, thursday = ?, friday = ?, saturday = ?, sunday = ? WHERE username = ?")
+        .bind(times.monday.0)
+        .bind(times.tuesday.0)
+        .bind(times.wednesday.0)
+        .bind(times.thursday.0)
+        .bind(times.friday.0)
+        .bind(times.saturday.0)
+        .bind(times.sunday.0)
+        .bind(username)
+        .execute(&*POOL).await {
         Ok(_) => Ok(()),
         Err(_) => return Err(ServerFnError::new("Database error")),
     }
@@ -35,12 +44,17 @@ pub async fn set_times(username: String, times: Settings) -> Result<(), ServerFn
 pub async fn query_data(username: String) -> Result<Data, ServerFnError> {
     let projects = query_projects(username.clone()).await?;
     let row = match query("SELECT * FROM users WHERE username = ?")
-        .bind(username)
+        .bind(username.clone())
         .fetch_one(&*POOL)
         .await
     {
         Ok(r) => r,
-        Err(sqlx::Error::RowNotFound) => todo!(),
+        Err(sqlx::Error::RowNotFound) => {
+            match query("INSERT INTO users (username, project, monday, monday_goal, tuesday, tuesday_goal, wednesday, wednesday_goal, thursday, thursday_goal, friday, friday_goal, saturday, saturday_goal, sunday, sunday_goal) VALUES (?, '', 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 3, 0, 3)").bind(username).execute(&*POOL).await {
+                Ok(_) => return Ok(Data { projects, primary: "".to_string(), settings: Settings { monday: (0, 1), tuesday: (0, 1), wednesday: (0, 1), thursday: (0, 1), friday: (0, 1), saturday: (0, 3), sunday: (0, 3) } }),
+                Err(_) => return Err(ServerFnError::new("Database error")),
+            }
+        },
         Err(_) => return Err(ServerFnError::new("Database error")),
     };
     let primary: String = match row.try_get("project") {
@@ -52,34 +66,55 @@ pub async fn query_data(username: String) -> Result<Data, ServerFnError> {
         projects,
         primary,
         settings: Settings {
-            monday: match row.try_get("monday") {
+            monday: (match row.try_get("monday") {
                 Ok(p) => p,
                 Err(_) => return Err(ServerFnError::new("Database error")),
-            },
-            tuesday: match row.try_get("tuesday") {
+            }, match row.try_get("monday_goal") {
                 Ok(p) => p,
                 Err(_) => return Err(ServerFnError::new("Database error")),
-            },
-            wednesday: match row.try_get("wednesday") {
+            }),
+            tuesday: (match row.try_get("tuesday") {
                 Ok(p) => p,
                 Err(_) => return Err(ServerFnError::new("Database error")),
-            },
-            thursday: match row.try_get("thursday") {
+            }, match row.try_get("tuesday_goal") {
                 Ok(p) => p,
                 Err(_) => return Err(ServerFnError::new("Database error")),
-            },
-            friday: match row.try_get("friday") {
+            }),
+            wednesday: (match row.try_get("wednesday") {
                 Ok(p) => p,
                 Err(_) => return Err(ServerFnError::new("Database error")),
-            },
-            saturday: match row.try_get("saturday") {
+            }, match row.try_get("wednesday_goal") {
                 Ok(p) => p,
                 Err(_) => return Err(ServerFnError::new("Database error")),
-            },
-            sunday: match row.try_get("sunday") {
+            }),
+            thursday: (match row.try_get("thursday") {
                 Ok(p) => p,
                 Err(_) => return Err(ServerFnError::new("Database error")),
-            },
+            }, match row.try_get("thursday_goal") {
+                Ok(p) => p,
+                Err(_) => return Err(ServerFnError::new("Database error")),
+            }),
+            friday: (match row.try_get("friday") {
+                Ok(p) => p,
+                Err(_) => return Err(ServerFnError::new("Database error")),
+            }, match row.try_get("friday_goal") {
+                Ok(p) => p,
+                Err(_) => return Err(ServerFnError::new("Database error")),
+            }),
+            saturday: (match row.try_get("saturday") {
+                Ok(p) => p,
+                Err(_) => return Err(ServerFnError::new("Database error")),
+            }, match row.try_get("saturday_goal") {
+                Ok(p) => p,
+                Err(_) => return Err(ServerFnError::new("Database error")),
+            }),
+            sunday: (match row.try_get("sunday") {
+                Ok(p) => p,
+                Err(_) => return Err(ServerFnError::new("Database error")),
+            }, match row.try_get("sunday_goal") {
+                Ok(p) => p,
+                Err(_) => return Err(ServerFnError::new("Database error")),
+            }),
         },
     })
 }
@@ -92,7 +127,7 @@ async fn query_projects(username: String) -> Result<Vec<Project>, ServerFnError>
         .get(format!(
             "https://hackatime.hackclub.com/api/v1/users/{}/stats?features=projects&start_date={}",
             username,
-            week_start.format("%d-%m").to_string()
+            week_start.and_hms_opt(4, 0, 0).unwrap().and_utc().to_rfc3339()
         ))
         .send()
         .await
@@ -133,5 +168,5 @@ fn parse_projects(data: Value) -> Option<Vec<Project>> {
         ));
     }
     out.sort_by(|a, b| a.2.cmp(&b.2));
-    Some(out.iter().map(|p| Project { name: p.0.clone(), time: p.1.clone() }).collect())
+    Some(out.iter().rev().map(|p| Project { name: p.0.clone(), time: p.1.clone() }).collect())
 }

@@ -15,11 +15,11 @@ pub struct Project {
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Settings {
-    pub monday: String,
-    pub tuesday: String,
-    pub wednesday: String,
-    pub thursday: String,
-    pub friday: String,
-    pub saturday: String,
-    pub sunday: String,
+    pub monday: (i64, i32),
+    pub tuesday: (i64, i32),
+    pub wednesday: (i64, i32),
+    pub thursday: (i64, i32),
+    pub friday: (i64, i32),
+    pub saturday: (i64, i32),
+    pub sunday: (i64, i32),
 }

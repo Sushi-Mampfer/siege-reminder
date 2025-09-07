@@ -3,6 +3,7 @@ pub mod datatypes;
 pub mod db;
 pub mod pages;
 pub mod server;
+pub mod notifications;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]

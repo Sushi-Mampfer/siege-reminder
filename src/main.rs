@@ -6,9 +6,11 @@ async fn main() {
     use axum::Router;
     use leptos::prelude::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
-    use siege_reminder::{app::*, db::prep_db};
+    use siege_reminder::{app::*, db::prep_db, notifications::notifications};
+    use tokio::spawn;
 
     prep_db().await;
+    spawn(notifications());
 
     let conf = get_configuration(None).unwrap();
     let leptos_options = conf.leptos_options;
