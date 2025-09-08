@@ -150,7 +150,7 @@ pub fn HomePage() -> impl IntoView {
                 project_loader.refetch();
             }>
                 <input
-                    class="bg-zinc-700 p-1 h-12 leading-12 w-full rounded-[3rem] text-center m-1"
+                    class="bg-zinc-700 p-1 h-12 leading-12 w-full rounded-[3rem] text-center m-1 focus:outline-none"
                     id="username"
                     name="username"
                     placeholder="Username"
