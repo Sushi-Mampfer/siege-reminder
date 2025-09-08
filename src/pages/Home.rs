@@ -1,29 +1,43 @@
 use chrono::{Datelike, Days, Duration, Local, NaiveTime, Offset, Utc};
 use gloo_timers::callback::Interval;
-use leptos::{
-    ev::SubmitEvent, logging::log, prelude::*, task::spawn_local
-};
+use leptos::{ev::SubmitEvent, logging::log, prelude::*, task::spawn_local};
 
 use crate::{datatypes::Settings, query_data, set_project, set_times};
 
 #[component]
 pub fn HomePage() -> impl IntoView {
     let offset = Local::now().offset().fix();
-    let monday_date = Utc::now().date_naive().checked_sub_signed(Duration::days(Utc::now().weekday().num_days_from_monday() as i64)).unwrap();
+    let monday_date = Utc::now()
+        .date_naive()
+        .checked_sub_signed(Duration::days(
+            Utc::now().weekday().num_days_from_monday() as i64
+        ))
+        .unwrap();
 
-    let to_utc = move |orig_time: String, days: u64| {
-        match NaiveTime::parse_from_str(&orig_time, "%H:%M"){
-            Ok(t) => {
-                monday_date.and_time(t).checked_add_days(Days::new(days)).unwrap().checked_sub_offset(offset).unwrap().signed_duration_since(monday_date.and_hms_opt(0, 0, 0).unwrap()).num_minutes()
-            },
-            Err(_) => 0
-        }
-    };
+    let to_utc =
+        move |orig_time: String, days: u64| match NaiveTime::parse_from_str(&orig_time, "%H:%M") {
+            Ok(t) => monday_date
+                .and_time(t)
+                .checked_add_days(Days::new(days))
+                .unwrap()
+                .checked_sub_offset(offset)
+                .unwrap()
+                .signed_duration_since(monday_date.and_hms_opt(0, 0, 0).unwrap())
+                .num_minutes(),
+            Err(_) => 0,
+        };
 
     let from_utc = move |orig_time: i64| {
-        monday_date.and_hms_opt(0, 0, 0).unwrap().checked_add_signed(Duration::minutes(orig_time)).unwrap().checked_add_offset(offset).unwrap().format("%H:%M").to_string()
+        monday_date
+            .and_hms_opt(0, 0, 0)
+            .unwrap()
+            .checked_add_signed(Duration::minutes(orig_time))
+            .unwrap()
+            .checked_add_offset(offset)
+            .unwrap()
+            .format("%H:%M")
+            .to_string()
     };
-
 
     let (time, set_time) = signal(Local::now().format("%H:%M:%S").to_string());
     let (username, set_username) = signal("".to_string());
@@ -49,17 +63,40 @@ pub fn HomePage() -> impl IntoView {
     let update = move |ev: SubmitEvent| {
         ev.prevent_default();
         let settings = Settings {
-            monday: (to_utc(monday.get(), 0), monday_goal.get().parse().expect("Leave the inputs")),
-            tuesday: (to_utc(tuesday.get(), 1), tuesday_goal.get().parse().expect("Leave the inputs")),
-            wednesday: (to_utc(wednesday.get(), 2), wednesday_goal.get().parse().expect("Leave the inputs")),
-            thursday: (to_utc(thursday.get(), 3), thursday_goal.get().parse().expect("Leave the inputs")),
-            friday: (to_utc(friday.get(), 4), friday_goal.get().parse().expect("Leave the inputs")),
-            saturday: (to_utc(saturday.get(), 5), saturday_goal.get().parse().expect("Leave the inputs")),
-            sunday: (to_utc(sunday.get(), 6), sunday_goal.get().parse().expect("Leave the inputs")),
+            monday: (
+                to_utc(monday.get(), 0),
+                monday_goal.get().parse().expect("Leave the inputs"),
+            ),
+            tuesday: (
+                to_utc(tuesday.get(), 1),
+                tuesday_goal.get().parse().expect("Leave the inputs"),
+            ),
+            wednesday: (
+                to_utc(wednesday.get(), 2),
+                wednesday_goal.get().parse().expect("Leave the inputs"),
+            ),
+            thursday: (
+                to_utc(thursday.get(), 3),
+                thursday_goal.get().parse().expect("Leave the inputs"),
+            ),
+            friday: (
+                to_utc(friday.get(), 4),
+                friday_goal.get().parse().expect("Leave the inputs"),
+            ),
+            saturday: (
+                to_utc(saturday.get(), 5),
+                saturday_goal.get().parse().expect("Leave the inputs"),
+            ),
+            sunday: (
+                to_utc(sunday.get(), 6),
+                sunday_goal.get().parse().expect("Leave the inputs"),
+            ),
         };
 
         let username = username.get();
-        spawn_local(async move { set_times(username, settings).await; } );
+        spawn_local(async move {
+            set_times(username, settings).await;
+        });
     };
 
     let load_settings = move |settings: Settings| {
@@ -79,12 +116,32 @@ pub fn HomePage() -> impl IntoView {
         sunday_goal.set(settings.sunday.1.to_string());
     };
 
+    Effect::new(move || {
+        if let Some(res) = project_loader.get() {
+            match res {
+                Ok(d) => {
+                    set_primary.set(d.primary);
+                    load_settings(d.settings);
+                }
+                Err(_) => (),
+            }
+        }
+    });
+
     #[cfg(target_arch = "wasm32")]
     Interval::new(1_000, move || {
         set_time.set(Local::now().format("%H:%M:%S").to_string());
-    }).forget();
+    })
+    .forget();
 
-    let next_sunday_local = Utc::now().date_naive().and_hms_opt(4, 0, 0).unwrap().checked_add_offset(offset).unwrap().format("%H:%M").to_string();
+    let next_sunday_local = Utc::now()
+        .date_naive()
+        .and_hms_opt(4, 0, 0)
+        .unwrap()
+        .checked_add_offset(offset)
+        .unwrap()
+        .format("%H:%M")
+        .to_string();
 
     view! {
         <div class="col-start-1 row-start-1 justify-self-center pt-5">
@@ -127,6 +184,7 @@ pub fn HomePage() -> impl IntoView {
                 <ul>
                     <li class="text-center leading-7">Put in your hackatime username</li>
                     <li class="text-center leading-7">Input your desired notification times and goals</li>
+                    <li class="text-center leading-7">Select your project</li>
                     <li class="text-center leading-7">Download <a class="underline" href="https://ntfy.sh">ntfy.sh</a> (web and mobile available)</li>
                     <li class="text-center leading-7">Subscribe to {"https://ntfy.tim.hackclub.app/username"}.</li>
                     <li class="text-center leading-7">{"Don't forget to save your setting"}</li>
@@ -145,26 +203,31 @@ pub fn HomePage() -> impl IntoView {
                         .map(|res| {
                             match res {
                                 Ok(data) => {
-                                    set_primary.set(data.primary);
-                                    load_settings(data.settings);
                                     view! {
                                         <ul>
                                             {
                                                 data.projects
                                                     .into_iter()
                                                     .map(|p| {
-                                                        let name_check = p.name.clone();
-                                                        let name_inverse_check = p.name.clone();
-                                                        let name_check_hover = p.name.clone();
-                                                        let name_inverse_check_hover = p.name.clone();
-                                                        log!("{}", primary.get());
                                                         view! {
                                                             <li
                                                                 class="bg-zinc-700 hover:bg-zinc-600 w-full hover:cursor-pointer flex justify-between items-center height-12 leading-12 rounded-[3rem] pl-12 pr-12 mb-3"
-                                                                class:bg-yellow-600=move || primary.get() == name_check
-                                                                class:bg-zinc-700=move || primary.get() != name_inverse_check
-                                                                class:hover:bg-yellow-500=move || primary.get() == name_check_hover
-                                                                class:hover:bg-zinc-600=move || primary.get() != name_inverse_check_hover
+                                                                class:bg-yellow-600={
+                                                                    let name = p.name.clone();
+                                                                    move || primary.get() == name
+                                                                }
+                                                                class:bg-zinc-700={
+                                                                    let name = p.name.clone();
+                                                                    move || primary.get() != name
+                                                                }
+                                                                class:hover:bg-yellow-500={
+                                                                    let name = p.name.clone();
+                                                                    move || primary.get() == name
+                                                                }
+                                                                class:hover:bg-zinc-600={
+                                                                    let name = p.name.clone();
+                                                                    move || primary.get() != name
+                                                                }
                                                                 on:click=move |_| {
                                                                     let project = p.name.clone();
                                                                     let username = username.get();
