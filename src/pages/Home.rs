@@ -1,4 +1,4 @@
-use chrono::{Datelike, Days, Duration, Local, NaiveTime, Offset, Utc};
+use chrono::{Datelike, Days, Duration, FixedOffset, Local, NaiveTime, Offset, Utc};
 use gloo_timers::callback::Interval;
 use leptos::{ev::SubmitEvent, logging::log, prelude::*, task::spawn_local};
 
@@ -6,7 +6,6 @@ use crate::{datatypes::Settings, query_data, set_project, set_times};
 
 #[component]
 pub fn HomePage() -> impl IntoView {
-    let offset = Local::now().offset().fix();
     let monday_date = Utc::now()
         .date_naive()
         .checked_sub_signed(Duration::days(
@@ -14,31 +13,8 @@ pub fn HomePage() -> impl IntoView {
         ))
         .unwrap();
 
-    let to_utc =
-        move |orig_time: String, days: u64| match NaiveTime::parse_from_str(&orig_time, "%H:%M") {
-            Ok(t) => monday_date
-                .and_time(t)
-                .checked_add_days(Days::new(days))
-                .unwrap()
-                .checked_sub_offset(offset)
-                .unwrap()
-                .signed_duration_since(monday_date.and_hms_opt(0, 0, 0).unwrap())
-                .num_minutes(),
-            Err(_) => 0,
-        };
-
-    let from_utc = move |orig_time: i64| {
-        monday_date
-            .and_hms_opt(0, 0, 0)
-            .unwrap()
-            .checked_add_signed(Duration::minutes(orig_time))
-            .unwrap()
-            .checked_add_offset(offset)
-            .unwrap()
-            .format("%H:%M")
-            .to_string()
-    };
-
+    let (offset, set_offset) = signal(FixedOffset::west_opt(0).unwrap());
+    let (local_submit, set_local_submit) = signal("04:00".to_string());
     let (time, set_time) = signal(Local::now().format("%H:%M:%S").to_string());
     let (username, set_username) = signal("".to_string());
     let (primary, set_primary) = signal("".to_string());
@@ -59,6 +35,31 @@ pub fn HomePage() -> impl IntoView {
     let sunday_goal = RwSignal::new("3".to_string());
 
     let project_loader = Resource::new(move || username.get(), |username| query_data(username));
+
+    let to_utc =
+        move |orig_time: String, days: u64| match NaiveTime::parse_from_str(&orig_time, "%H:%M") {
+            Ok(t) => monday_date
+                .and_time(t)
+                .checked_add_days(Days::new(days))
+                .unwrap()
+                .checked_sub_offset(offset.get())
+                .unwrap()
+                .signed_duration_since(monday_date.and_hms_opt(0, 0, 0).unwrap())
+                .num_minutes(),
+            Err(_) => 0,
+        };
+
+    let from_utc = move |orig_time: i64| {
+        monday_date
+            .and_hms_opt(0, 0, 0)
+            .unwrap()
+            .checked_add_signed(Duration::minutes(orig_time))
+            .unwrap()
+            .checked_add_offset(offset.get())
+            .unwrap()
+            .format("%H:%M")
+            .to_string()
+    };
 
     let update = move |ev: SubmitEvent| {
         ev.prevent_default();
@@ -134,14 +135,19 @@ pub fn HomePage() -> impl IntoView {
     })
     .forget();
 
-    let next_sunday_local = Utc::now()
-        .date_naive()
-        .and_hms_opt(4, 0, 0)
-        .unwrap()
-        .checked_add_offset(offset)
-        .unwrap()
-        .format("%H:%M")
-        .to_string();
+    Effect::new(move |_| {
+        set_offset.set(Local::now().offset().fix());
+        set_local_submit.set(
+            Utc::now()
+                .date_naive()
+                .and_hms_opt(4, 0, 0)
+                .unwrap()
+                .checked_add_offset(offset.get())
+                .unwrap()
+                .format("%H:%M")
+                .to_string(),
+        );
+    });
 
     view! {
         <div class="col-start-1 row-start-1 justify-self-center pt-5">
@@ -177,7 +183,7 @@ pub fn HomePage() -> impl IntoView {
             <div>
                 <p class="text-center pt-5">Your current time is {time}</p>
                 <p class="text-center pt-2">If not please adjust the times accordingly.</p>
-                <p class="text-center pt-2">{format!("You'll have to submit at {}", next_sunday_local)}</p>
+                <p class="text-center pt-2">{move || format!("You'll have to submit at {}", local_submit.get())}</p>
             </div>
             <div>
                 <h1 class="pt-5 text-[5rem] text-center font-bold">Tutorial</h1>
