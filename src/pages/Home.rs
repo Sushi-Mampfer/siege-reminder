@@ -1,6 +1,6 @@
 use chrono::{Datelike, Days, Duration, Local, NaiveTime, Offset, Utc};
 use gloo_timers::callback::Interval;
-use leptos::{ev::SubmitEvent, logging::log, prelude::*, task::spawn_local};
+use leptos::{ev::SubmitEvent, logging::log, on_mount, prelude::*, task::spawn_local};
 
 use crate::{datatypes::Settings, query_data, set_project, set_times};
 
@@ -39,6 +39,7 @@ pub fn HomePage() -> impl IntoView {
             .to_string()
     };
 
+    let (next_sunday_local, set_next_sunday_local) = signal("04:00".to_string());
     let (time, set_time) = signal(Local::now().format("%H:%M:%S").to_string());
     let (username, set_username) = signal("".to_string());
     let (primary, set_primary) = signal("".to_string());
@@ -134,14 +135,21 @@ pub fn HomePage() -> impl IntoView {
     })
     .forget();
 
-    let next_sunday_local = Utc::now()
-        .date_naive()
-        .and_hms_opt(4, 0, 0)
-        .unwrap()
-        .checked_add_offset(offset)
-        .unwrap()
-        .format("%H:%M")
-        .to_string();
+    on_mount(move || {
+        let now = chrono::Local::now();
+        let time = now
+            .date_naive()
+            .and_hms_opt(4, 0, 0)
+            .unwrap()
+            .checked_add_days(chrono::Days::new(
+                7 - now.weekday().num_days_from_sunday() as u64,
+            ))
+            .unwrap()
+            .format("%H:%M")
+            .to_string();
+
+        set_next_sunday_local.set(time);
+    });
 
     view! {
         <div class="col-start-1 row-start-1 justify-self-center pt-5">
