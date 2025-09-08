@@ -1,6 +1,6 @@
 use chrono::{Datelike, Days, Duration, Local, NaiveTime, Offset, Utc};
 use gloo_timers::callback::Interval;
-use leptos::{ev::SubmitEvent, logging::log, on_mount, prelude::*, task::spawn_local};
+use leptos::{ev::SubmitEvent, logging::log, prelude::*, task::spawn_local};
 
 use crate::{datatypes::Settings, query_data, set_project, set_times};
 
@@ -39,7 +39,6 @@ pub fn HomePage() -> impl IntoView {
             .to_string()
     };
 
-    let (next_sunday_local, set_next_sunday_local) = signal("04:00".to_string());
     let (time, set_time) = signal(Local::now().format("%H:%M:%S").to_string());
     let (username, set_username) = signal("".to_string());
     let (primary, set_primary) = signal("".to_string());
@@ -135,22 +134,6 @@ pub fn HomePage() -> impl IntoView {
     })
     .forget();
 
-    on_mount(move || {
-        let now = chrono::Local::now();
-        let time = now
-            .date_naive()
-            .and_hms_opt(4, 0, 0)
-            .unwrap()
-            .checked_add_days(chrono::Days::new(
-                7 - now.weekday().num_days_from_sunday() as u64,
-            ))
-            .unwrap()
-            .format("%H:%M")
-            .to_string();
-
-        set_next_sunday_local.set(time);
-    });
-
     view! {
         <div class="col-start-1 row-start-1 justify-self-center pt-5">
             <form on:submit=move |ev| {
@@ -185,7 +168,6 @@ pub fn HomePage() -> impl IntoView {
             <div>
                 <p class="text-center pt-5">Your current time is {time}</p>
                 <p class="text-center pt-2">If not please adjust the times accordingly.</p>
-                <p class="text-center pt-2">{format!("You'll have to submit at {}", next_sunday_local)}</p>
             </div>
             <div>
                 <h1 class="pt-5 text-[5rem] text-center font-bold">Tutorial</h1>
