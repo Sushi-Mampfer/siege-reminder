@@ -1,8 +1,8 @@
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, MetaTags, Title};
 use leptos_router::{
-    components::{Route, Router, Routes},
-    StaticSegment,
+    components::{Route, Router, Routes, A},
+    path, StaticSegment,
 };
 
 use crate::pages::HomePage;
@@ -49,6 +49,7 @@ pub fn App() -> impl IntoView {
             <main class="h-screen w-screen grid grid-cols-3 bg-zinc-800 text-zinc-200">
                 <Routes fallback=|| "Page not found.".into_view()>
                     <Route path=StaticSegment("") view=HomePage />
+                    <Route path=path!("/test") view=|| view!{<A href="/">Main</A>} />
                 </Routes>
             </main>
         </Router>

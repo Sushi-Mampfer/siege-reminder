@@ -134,6 +134,15 @@ pub fn HomePage() -> impl IntoView {
     })
     .forget();
 
+    let next_sunday_local = Utc::now()
+        .date_naive()
+        .and_hms_opt(4, 0, 0)
+        .unwrap()
+        .checked_add_offset(offset)
+        .unwrap()
+        .format("%H:%M")
+        .to_string();
+
     view! {
         <div class="col-start-1 row-start-1 justify-self-center pt-5">
             <form on:submit=move |ev| {
@@ -141,7 +150,7 @@ pub fn HomePage() -> impl IntoView {
                 project_loader.refetch();
             }>
                 <input
-                    class="bg-zinc-700 p-1 h-12 leading-12 w-full rounded-[3rem] text-center m-1 focus:outline-none"
+                    class="bg-zinc-700 p-1 h-12 leading-12 w-full rounded-[3rem] text-center m-1"
                     id="username"
                     name="username"
                     placeholder="Username"
@@ -168,6 +177,7 @@ pub fn HomePage() -> impl IntoView {
             <div>
                 <p class="text-center pt-5">Your current time is {time}</p>
                 <p class="text-center pt-2">If not please adjust the times accordingly.</p>
+                <p class="text-center pt-2">{format!("You'll have to submit at {}", next_sunday_local)}</p>
             </div>
             <div>
                 <h1 class="pt-5 text-[5rem] text-center font-bold">Tutorial</h1>
