@@ -10,9 +10,7 @@ async fn main() {
     use tokio::spawn;
 
     prep_db().await;
-    dbg!("spawning");
     spawn(notifications());
-    dbg!("spawned");
 
     let conf = get_configuration(None).unwrap();
     let leptos_options = conf.leptos_options;

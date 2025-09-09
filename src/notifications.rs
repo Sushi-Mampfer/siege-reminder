@@ -13,7 +13,6 @@ use crate::db::POOL;
 pub async fn notifications() {
     let mut interval = interval(Duration::from_secs(1));
     let mut last = 0;
-    dbg!("smth is happening");
     loop {
         let monday = Utc::now()
             .date_naive()
@@ -27,7 +26,6 @@ pub async fn notifications() {
             .naive_utc()
             .signed_duration_since(monday)
             .num_minutes();
-        dbg!(time_passed);
         if time_passed != last {
             last = time_passed;
             let rows = match query("SELECT username, project, 
