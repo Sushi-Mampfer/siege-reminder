@@ -185,11 +185,11 @@ pub fn HomePage() -> impl IntoView {
             <div>
                 <h1 class="pt-5 text-[5rem] text-center font-bold">Tutorial</h1>
                 <ul>
-                    <li class="text-center leading-7">Put in your hackatime username or slack id</li>
+                    <li class="text-center leading-7">Enter your hackatime username or slack id</li>
                     <li class="text-center leading-7">Input your desired notification times and goals</li>
                     <li class="text-center leading-7">Select your project</li>
                     <li class="text-center leading-7">Download <a class="underline" href="https://ntfy.sh">ntfy.sh</a> (web and mobile available)</li>
-                    <li class="text-center leading-7">Subscribe to {"https://ntfy.tim.hackclub.app/username"}.</li>
+                    <li class="text-center leading-7">Subscribe to <a class="underline" href={move || format!("https://ntfy.tim.hackclub.app/{}", username.get())}>{move || format!("https://ntfy.tim.hackclub.app/{}", username.get())}</a></li>
                     <li class="text-center leading-7">{"Don't forget to save your setting"}</li>
                     <li class="text-center leading-7">If you have any problems ping or dm me on slack</li>
                     <li class="text-center leading-7">You can find me in the siege channel as Tim</li>
