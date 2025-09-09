@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Data {
+    pub username: String,
     pub projects: Vec<Project>,
     pub primary: String,
     pub settings: Settings,

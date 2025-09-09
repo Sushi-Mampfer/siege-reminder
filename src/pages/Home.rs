@@ -156,15 +156,12 @@ pub fn HomePage() -> impl IntoView {
                 project_loader.refetch();
             }>
                 <input
-                    class="bg-zinc-700 p-1 h-12 leading-12 w-full rounded-[3rem] text-center m-1"
+                    class="bg-zinc-700 p-1 h-12 leading-12 w-full rounded-[3rem] text-center m-1 focus:outline-none mb-4"
                     id="username"
                     name="username"
                     placeholder="Username"
                     bind:value=(username, set_username)
-                    on:input:target=move |ev| { set_username.set(ev.target().value()) }
                 />
-                <br />
-                <input class="bg-zinc-700 h-12 w-full rounded-[3rem] text-center m-1 flex items-center justify-center hover:bg-zinc-600" type="submit" value="Load settings" />
             </form>
             <form on:submit=update>
                 <div class="grid grid-cols-[repeat(4,25%)]">
@@ -174,7 +171,7 @@ pub fn HomePage() -> impl IntoView {
                     <p class="col-start-1 h-12 leading-12">Thursday:</p><input class="fcol-start-2 h-[calc(3rem-.5rem)] leading-[calc(3rem-.5rem)] bg-zinc-700 text-center rounded-[calc(3rem-.5rem)] focus:outline-none m-[0.25rem]" name="thursday" type="time" bind:value=thursday /> <p class="col-start-3 h-12 leading-12 text-center">Goal:</p> <input class="col-start-4 h-[calc(3rem-.5rem)] leading-[calc(3rem-.5rem)] bg-zinc-700 text-center rounded-[calc(3rem-.5rem)] focus:outline-none m-[0.25rem]" name="thursday_goal" type="number" bind:value=thursday_goal />
                     <p class="col-start-1 h-12 leading-12">Friday:</p><input class="fcol-start-2 h-[calc(3rem-.5rem)] leading-[calc(3rem-.5rem)] bg-zinc-700 text-center rounded-[calc(3rem-.5rem)] focus:outline-none m-[0.25rem]" name="friday" type="time" bind:value=friday /> <p class="col-start-3 h-12 leading-12 text-center">Goal:</p> <input class="col-start-4 h-[calc(3rem-.5rem)] leading-[calc(3rem-.5rem)] bg-zinc-700 text-center rounded-[calc(3rem-.5rem)] focus:outline-none m-[0.25rem]" name="friday_goal" type="number" bind:value=friday_goal />
                     <p class="col-start-1 h-12 leading-12">Saturday:</p><input class="fcol-start-2 h-[calc(3rem-.5rem)] leading-[calc(3rem-.5rem)] bg-zinc-700 text-center rounded-[calc(3rem-.5rem)] focus:outline-none m-[0.25rem]" name="saturday" type="time" bind:value=saturday /> <p class="col-start-3 h-12 leading-12 text-center">Goal:</p> <input class="col-start-4 h-[calc(3rem-.5rem)] leading-[calc(3rem-.5rem)] bg-zinc-700 text-center rounded-[calc(3rem-.5rem)] focus:outline-none m-[0.25rem]" name="saturday_goal" type="number" bind:value=saturday_goal />
-                    <p class="col-start-1 h-12 leading-12">Sunday:</p><input class="col-start-2 h-[calc(3rem-.5rem)] leading-[calc(3rem-.5rem)] bg-zinc-700 text-center rounded-[calc(3rem-.5rem)] focus:outline-none m-[0.25rem] mb-4" name="sunday" type="time" bind:value=sunday /> <p class="col-start-3 h-12 leading-12 text-center">Goal:</p> <input class="col-start-4 h-[calc(3rem-.5rem)] leading-[calc(3rem-.5rem)] bg-zinc-700 text-center rounded-[calc(3rem-.5rem)] focus:outline-none m-[0.25rem]" name="sunday_goal" type="number" bind:value=sunday_goal />
+                    <p class="col-start-1 h-12 leading-12">Sunday:</p><input class="col-start-2 h-[calc(3rem-.5rem)] leading-[calc(3rem-.5rem)] bg-zinc-700 text-center rounded-[calc(3rem-.5rem)] focus:outline-none m-[0.25rem] mb-3" name="sunday" type="time" bind:value=sunday /> <p class="col-start-3 h-12 leading-12 text-center">Goal:</p> <input class="col-start-4 h-[calc(3rem-.5rem)] leading-[calc(3rem-.5rem)] bg-zinc-700 text-center rounded-[calc(3rem-.5rem)] focus:outline-none m-[0.25rem]" name="sunday_goal" type="number" bind:value=sunday_goal />
                 </div>
                 <input class="bg-zinc-700 text-center h12 leading-12 w-full rounded-[3rem] hover:bg-zinc-600" type="submit" value="Save" />
             </form>
@@ -188,7 +185,7 @@ pub fn HomePage() -> impl IntoView {
             <div>
                 <h1 class="pt-5 text-[5rem] text-center font-bold">Tutorial</h1>
                 <ul>
-                    <li class="text-center leading-7">Put in your hackatime username</li>
+                    <li class="text-center leading-7">Put in your hackatime username or slack id</li>
                     <li class="text-center leading-7">Input your desired notification times and goals</li>
                     <li class="text-center leading-7">Select your project</li>
                     <li class="text-center leading-7">Download <a class="underline" href="https://ntfy.sh">ntfy.sh</a> (web and mobile available)</li>
@@ -209,6 +206,7 @@ pub fn HomePage() -> impl IntoView {
                         .map(|res| {
                             match res {
                                 Ok(data) => {
+                                    set_username.set(data.username);
                                     view! {
                                         <ul>
                                             {

@@ -42,7 +42,7 @@ pub async fn set_times(username: String, times: Settings) -> Result<(), ServerFn
 
 #[server]
 pub async fn query_data(username: String) -> Result<Data, ServerFnError> {
-    let projects = query_projects(username.clone()).await?;
+    let (username, projects) = query_projects(username.clone()).await?;
     let row = match query("SELECT * FROM users WHERE username = ?")
         .bind(username.clone())
         .fetch_one(&*POOL)
@@ -50,8 +50,8 @@ pub async fn query_data(username: String) -> Result<Data, ServerFnError> {
     {
         Ok(r) => r,
         Err(sqlx::Error::RowNotFound) => {
-            match query("INSERT INTO users (username, project, monday, monday_goal, tuesday, tuesday_goal, wednesday, wednesday_goal, thursday, thursday_goal, friday, friday_goal, saturday, saturday_goal, sunday, sunday_goal) VALUES (?, '', 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 3, 0, 3)").bind(username).execute(&*POOL).await {
-                Ok(_) => return Ok(Data { projects, primary: "".to_string(), settings: Settings { monday: (0, 1), tuesday: (0, 1), wednesday: (0, 1), thursday: (0, 1), friday: (0, 1), saturday: (0, 3), sunday: (0, 3) } }),
+            match query("INSERT INTO users (username, project, monday, monday_goal, tuesday, tuesday_goal, wednesday, wednesday_goal, thursday, thursday_goal, friday, friday_goal, saturday, saturday_goal, sunday, sunday_goal) VALUES (?, '', 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 3, 0, 3)").bind(username.clone()).execute(&*POOL).await {
+                Ok(_) => return Ok(Data { username, projects, primary: "".to_string(), settings: Settings { monday: (0, 1), tuesday: (0, 1), wednesday: (0, 1), thursday: (0, 1), friday: (0, 1), saturday: (0, 3), sunday: (0, 3) } }),
                 Err(_) => return Err(ServerFnError::new("Database error")),
             }
         },
@@ -63,6 +63,7 @@ pub async fn query_data(username: String) -> Result<Data, ServerFnError> {
     };
 
     Ok(Data {
+        username,
         projects,
         primary,
         settings: Settings {
@@ -119,7 +120,7 @@ pub async fn query_data(username: String) -> Result<Data, ServerFnError> {
     })
 }
 
-async fn query_projects(username: String) -> Result<Vec<Project>, ServerFnError> {
+async fn query_projects(username: String) -> Result<(String, Vec<Project>), ServerFnError> {
     let today = Utc::now().date_naive();
     let week_start = today - Duration::days(today.weekday().num_days_from_monday() as i64);
     let client = Client::new();
@@ -156,10 +157,12 @@ async fn query_projects(username: String) -> Result<Vec<Project>, ServerFnError>
     }
 }
 
-fn parse_projects(data: Value) -> Option<Vec<Project>> {
+fn parse_projects(data: Value) -> Option<(String, Vec<Project>)> {
     let mut out = Vec::new();
 
-    let projects = data.get("data")?.get("projects")?;
+    let data = data.get("data")?;
+    let projects = data.get("projects")?;
+    let username = data.get("username")?.as_str()?.to_owned();
     for i in projects.as_array()? {
         out.push((
             i.get("name")?.as_str()?.to_string(),
@@ -168,5 +171,5 @@ fn parse_projects(data: Value) -> Option<Vec<Project>> {
         ));
     }
     out.sort_by(|a, b| a.2.cmp(&b.2));
-    Some(out.iter().rev().map(|p| Project { name: p.0.clone(), time: p.1.clone() }).collect())
+    Some((username, out.iter().rev().map(|p| Project { name: p.0.clone(), time: p.1.clone() }).collect()))
 }
