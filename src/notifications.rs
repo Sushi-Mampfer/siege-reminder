@@ -27,6 +27,7 @@ pub async fn notifications() {
             .signed_duration_since(monday)
             .num_minutes();
         if time_passed != last {
+            dbg!(time_passed);
             last = time_passed;
             let rows = match query("SELECT username, project, 
                 CASE
